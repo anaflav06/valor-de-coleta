@@ -31,5 +31,16 @@
     "valor_nf": 9600.0,
     "tipo_veiculo": "Carro de passeio",
     "valor_cotacao": 60.0
+  },
+  {
+    "id": "20261001173841942404",
+    "data_hora": "01/10/2026 17:38:41",
+    "timestamp": "2026-10-01T17:38:41",
+    "cep_coleta": "04321000",
+    "km_informado": 10.0,
+    "km_total_interno": 20.0,
+    "valor_nf": 9600.0,
+    "tipo_veiculo": "Carro de passeio",
+    "valor_cotacao": 60.0
   }
 ]
