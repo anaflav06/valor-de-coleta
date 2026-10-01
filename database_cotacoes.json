@@ -72,5 +72,20 @@
     "tipo_veiculo": "Carro de passeio",
     "valor_base": 90.0,
     "valor_cotacao": 91.4
+  },
+  {
+    "id": "20261001174546988308",
+    "data_hora": "01/10/2026 17:45:46",
+    "timestamp": "2026-10-01T17:45:46",
+    "cep_coleta": "01101010",
+    "km_informado": 35.0,
+    "km_total_interno": 70.0,
+    "peso_total": 12.0,
+    "kg_excedentes": 2,
+    "adicional_peso": 1.4,
+    "valor_nf": 150.0,
+    "tipo_veiculo": "Carro de passeio",
+    "valor_base": 150.0,
+    "valor_cotacao": 151.4
   }
 ]
