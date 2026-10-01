@@ -135,8 +135,39 @@ def moeda(valor):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def arredondar_dezena_para_cima(valor):
-    return math.ceil(valor / 10.0) * 10.0
+def arredondar_faixa_30(valor):
+    """
+    Valores comerciais em faixas de R$ 30,00.
+    Há tolerância de até R$ 2,00 acima da faixa anterior:
+    30,01 até 32,00 -> 30,00
+    acima de 32,00 -> 60,00
+    60,01 até 62,00 -> 60,00, etc.
+    """
+    if valor <= 30.0:
+        return 30.0
+
+    faixa_inferior = math.floor(valor / 30.0) * 30.0
+
+    # Se o valor for múltiplo exato de 30, mantém o próprio valor.
+    if math.isclose(valor, faixa_inferior, abs_tol=1e-9):
+        return faixa_inferior
+
+    # Até R$ 2,00 acima da faixa, mantém a faixa anterior.
+    if valor <= faixa_inferior + 2.0:
+        return faixa_inferior
+
+    return faixa_inferior + 30.0
+
+
+def calcular_adicional_peso(peso_total):
+    """
+    Até 10 kg: sem adicional.
+    A partir de 11 kg: R$ 0,70 por kg inteiro excedente.
+    Frações de kg são desconsideradas.
+    """
+    kg_inteiros = math.floor(float(peso_total))
+    kg_excedentes = max(0, kg_inteiros - 10)
+    return kg_excedentes, kg_excedentes * 0.70
 
 
 def calcular_valor_coleta(km_ida):
@@ -153,17 +184,17 @@ def calcular_valor_coleta(km_ida):
 
     liquido_necessario = custo_total * (1 + LUCRO)
     valor_calculado = liquido_necessario / PERCENTUAL_RECEBIDO
-    valor_final = arredondar_dezena_para_cima(valor_calculado)
+    valor_base = arredondar_faixa_30(valor_calculado)
 
     return {
         "km_total": km_total,
         "custo_total": custo_total,
         "valor_calculado": valor_calculado,
-        "valor_final": valor_final,
+        "valor_base": valor_base,
     }
 
 
-def registrar_cotacao(cep, km, valor_nf, tipo_veiculo, calculo):
+def registrar_cotacao(cep, km, peso_total, valor_nf, tipo_veiculo, calculo, kg_excedentes, adicional_peso, valor_final):
     # Recarrega o banco antes de incluir para reduzir risco de sobrescrever
     # registros feitos por outro usuário.
     historico = carregar_historico()
@@ -176,9 +207,13 @@ def registrar_cotacao(cep, km, valor_nf, tipo_veiculo, calculo):
         "cep_coleta": cep.strip(),
         "km_informado": round(float(km), 2),
         "km_total_interno": round(float(calculo["km_total"]), 2),
+        "peso_total": round(float(peso_total), 2),
+        "kg_excedentes": int(kg_excedentes),
+        "adicional_peso": round(float(adicional_peso), 2),
         "valor_nf": round(float(valor_nf), 2),
         "tipo_veiculo": tipo_veiculo,
-        "valor_cotacao": round(float(calculo["valor_final"]), 2),
+        "valor_base": round(float(calculo["valor_base"]), 2),
+        "valor_cotacao": round(float(valor_final), 2),
     }
 
     historico.append(registro)
@@ -327,6 +362,13 @@ if pagina == "🚚 Nova Cotação":
             format="%.1f",
         )
 
+        peso_total = st.number_input(
+            "Peso total (kg)",
+            min_value=0.0,
+            step=0.1,
+            format="%.1f",
+        )
+
         valor_nf = st.number_input(
             "Valor da Nota Fiscal (NF)",
             min_value=0.0,
@@ -352,6 +394,8 @@ if pagina == "🚚 Nova Cotação":
             erros.append("Informe o CEP da coleta.")
         if km <= 0:
             erros.append("Informe a quilometragem da coleta.")
+        if peso_total <= 0:
+            erros.append("Informe o peso total da carga.")
         if valor_nf <= 0:
             erros.append("Informe o valor da Nota Fiscal.")
         if tipo_veiculo == "Selecione...":
@@ -384,10 +428,20 @@ if pagina == "🚚 Nova Cotação":
                 )
             else:
                 calculo = calcular_valor_coleta(km)
+                kg_excedentes, adicional_peso = calcular_adicional_peso(peso_total)
+                valor_final = calculo["valor_base"] + adicional_peso
 
                 try:
                     registrar_cotacao(
-                        cep_coleta, km, valor_nf, tipo_veiculo, calculo
+                        cep_coleta,
+                        km,
+                        peso_total,
+                        valor_nf,
+                        tipo_veiculo,
+                        calculo,
+                        kg_excedentes,
+                        adicional_peso,
+                        valor_final,
                     )
                     st.success("Cotação calculada e salva no histórico.")
                 except Exception:
@@ -400,14 +454,14 @@ if pagina == "🚚 Nova Cotação":
                     f"""
                     <div class="resultado">
                         <div class="resultado-label">VALOR DA COLETA</div>
-                        <div class="resultado-valor">{moeda(calculo["valor_final"])}</div>
+                        <div class="resultado-valor">{moeda(valor_final)}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
 
                 st.caption(
-                    f"CEP {cep_coleta} • {km:.1f} km • "
+                    f"CEP {cep_coleta} • {km:.1f} km • {peso_total:.1f} kg • "
                     f"{tipo_veiculo} • NF {moeda(valor_nf)}"
                 )
 
@@ -459,6 +513,8 @@ else:
                         🚗 {item.get("tipo_veiculo", "-")}
                         &nbsp;&nbsp;•&nbsp;&nbsp;
                         📏 {float(item.get("km_informado", 0)):.1f} km
+                        &nbsp;&nbsp;•&nbsp;&nbsp;
+                        ⚖️ {float(item.get("peso_total", 0)):.1f} kg
                     </div>
                     <div style="margin-top:5px;color:#666;">
                         NF: {moeda(item.get("valor_nf", 0))}
