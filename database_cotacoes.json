@@ -237,5 +237,20 @@
     "tipo_veiculo": "Moto",
     "valor_base": 60.0,
     "valor_cotacao": 63.5
+  },
+  {
+    "id": "20261001181356993172",
+    "data_hora": "01/10/2026 18:13:56",
+    "timestamp": "2026-10-01T18:13:56",
+    "cep_coleta": "09911360",
+    "km_informado": 5.0,
+    "km_total_interno": 10.0,
+    "peso_total": 15.0,
+    "kg_excedentes": 0,
+    "adicional_peso": 0.0,
+    "valor_nf": 150.0,
+    "tipo_veiculo": "Caminhão",
+    "valor_base": 490.97,
+    "valor_cotacao": 490.97
   }
 ]
