@@ -26,6 +26,15 @@ PERCENTUAL_RECEBIDO = 0.75
 VALOR_MAX_NF = 80000.00
 TIPOS_PERMITIDOS = ["Moto", "Carro de passeio"]
 
+# Caminhão / operação especial
+DIESEL_PRECO = 8.00
+CAMINHAO_KM_POR_LITRO = 3.5
+ARLA_PRECO = 3.50
+ARLA_LITROS_POR_LITRO_DIESEL = 1 / 20
+CAMINHAO_MOTORISTA = 150.00
+CAMINHAO_RASTREAMENTO = 80.00
+CAMINHAO_SEGURO_VIAGEM = 50.00
+
 LOCAL_DB_PATH = Path("database_cotacoes.json")
 
 
@@ -193,6 +202,36 @@ def calcular_valor_coleta(km_ida):
         "valor_base": valor_base,
     }
 
+
+
+def calcular_valor_caminhao(km_ida):
+    km_total = float(km_ida) * 2
+
+    litros_diesel = km_total / CAMINHAO_KM_POR_LITRO
+    custo_diesel = litros_diesel * DIESEL_PRECO
+
+    litros_arla = litros_diesel * ARLA_LITROS_POR_LITRO_DIESEL
+    custo_arla = litros_arla * ARLA_PRECO
+
+    custo_total = (
+        custo_diesel
+        + custo_arla
+        + km_total * MANUTENCAO_POR_KM
+        + km_total * PNEUS_DEPRECIACAO_POR_KM
+        + CAMINHAO_RASTREAMENTO
+        + CAMINHAO_MOTORISTA
+        + CAMINHAO_SEGURO_VIAGEM
+    )
+
+    liquido_necessario = custo_total * (1 + LUCRO)
+    valor_final = liquido_necessario / PERCENTUAL_RECEBIDO
+
+    return {
+        "km_total": km_total,
+        "custo_total": custo_total,
+        "valor_calculado": valor_final,
+        "valor_base": valor_final,
+    }
 
 def registrar_cotacao(cep, km, peso_total, valor_nf, tipo_veiculo, calculo, kg_excedentes, adicional_peso, valor_final):
     # Recarrega o banco antes de incluir para reduzir risco de sobrescrever
@@ -378,7 +417,7 @@ if pagina == "🚚 Nova Cotação":
 
         tipo_veiculo = st.selectbox(
             "Tipo de veículo",
-            ["Selecione...", "Moto", "Carro de passeio", "Outro"],
+            ["Selecione...", "Moto", "Carro de passeio", "Caminhão", "Outro"],
         )
 
         calcular = st.form_submit_button(
@@ -407,18 +446,21 @@ if pagina == "🚚 Nova Cotação":
         else:
             exige_supervisao = False
 
-            if valor_nf > VALOR_MAX_NF:
-                exige_supervisao = True
-                st.warning(
-                    "⚠️ VALOR DA NF ACIMA DE R$ 80.000,00.\n\n"
-                    "Consulte a supervisão antes de informar ou confirmar o valor da coleta."
-                )
+            operacao_caminhao = (
+                valor_nf > VALOR_MAX_NF or tipo_veiculo == "Caminhão"
+            )
 
-            if tipo_veiculo not in TIPOS_PERMITIDOS:
+            if tipo_veiculo == "Outro":
                 exige_supervisao = True
                 st.warning(
                     "⚠️ TIPO DE VEÍCULO FORA DO PADRÃO.\n\n"
-                    "Para veículos acima de moto ou carro de passeio, consulte a supervisão."
+                    "Consulte a supervisão para esta cotação."
+                )
+
+            if valor_nf > VALOR_MAX_NF and tipo_veiculo != "Caminhão":
+                st.info(
+                    "ℹ️ NF acima de R$ 80.000,00: o cálculo será realizado "
+                    "automaticamente pelos parâmetros de caminhão, com rastreamento."
                 )
 
             if exige_supervisao:
@@ -427,9 +469,15 @@ if pagina == "🚚 Nova Cotação":
                     "O valor automático não será exibido."
                 )
             else:
-                calculo = calcular_valor_coleta(km)
-                kg_excedentes, adicional_peso = calcular_adicional_peso(peso_total)
-                valor_final = calculo["valor_base"] + adicional_peso
+                if operacao_caminhao:
+                    calculo = calcular_valor_caminhao(km)
+                    kg_excedentes = 0
+                    adicional_peso = 0.0
+                    valor_final = calculo["valor_base"]
+                else:
+                    calculo = calcular_valor_coleta(km)
+                    kg_excedentes, adicional_peso = calcular_adicional_peso(peso_total)
+                    valor_final = calculo["valor_base"] + adicional_peso
 
                 try:
                     registrar_cotacao(
