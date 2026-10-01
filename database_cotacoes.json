@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "20261001173202567641",
+    "data_hora": "01/10/2026 17:32:02",
+    "timestamp": "2026-10-01T17:32:02",
+    "cep_coleta": "04279-030",
+    "km_informado": 5.0,
+    "km_total_interno": 10.0,
+    "valor_nf": 150.0,
+    "tipo_veiculo": "Carro de passeio",
+    "valor_cotacao": 50.0
+  }
+]
