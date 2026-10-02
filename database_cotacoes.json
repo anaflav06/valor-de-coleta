@@ -411,5 +411,28 @@
     "valor_base": 499.57,
     "valor_servico": 499.57,
     "valor_cotacao": 555.57
+  },
+  {
+    "id": "20261002223624076280",
+    "data_hora": "02/10/2026 22:36:24",
+    "timestamp": "2026-10-02T22:36:24",
+    "cep_coleta": "04310-010",
+    "km_informado": 6.0,
+    "km_total_interno": 12.0,
+    "servico": "Standard",
+    "peso_total": 90.0,
+    "altura_cm": 30.0,
+    "largura_cm": 100.0,
+    "comprimento_cm": 20.0,
+    "peso_cubado": 10.0,
+    "peso_considerado": 90.0,
+    "kg_excedentes": 80,
+    "adicional_peso": 56.0,
+    "valor_nf": 150.0,
+    "tipo_veiculo": "Caminhão",
+    "regra_calculo": "Caminhão",
+    "valor_base": 499.57,
+    "valor_servico": 499.57,
+    "valor_cotacao": 555.57
   }
 ]
