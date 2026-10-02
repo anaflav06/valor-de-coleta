@@ -16,24 +16,32 @@ st.set_page_config(
 # =========================================================
 # PARÂMETROS INTERNOS — NÃO EXIBIDOS AO USUÁRIO OPERACIONAL
 # =========================================================
+# Moto / carro
 PRECO_GASOLINA = 7.00
-KM_POR_LITRO = 10.0
+CARRO_KM_POR_LITRO = 10.0
 MANUTENCAO_POR_KM = 0.20
 PNEUS_DEPRECIACAO_POR_KM = 0.15
-MOTORISTA_POR_COLETA = 15.00
+MOTORISTA_CARRO = 15.00
+
+# Caminhão
+PRECO_DIESEL = 8.00
+CAMINHAO_KM_POR_LITRO = 3.5
+PRECO_ARLA = 3.50
+ARLA_POR_LITROS_DIESEL = 1 / 20
+MOTORISTA_CAMINHAO = 150.00
+RASTREAMENTO_CAMINHAO = 80.00
+SEGURO_CAMINHAO = 50.00
+
+# Regras gerais
 LUCRO = 0.20
 PERCENTUAL_RECEBIDO = 0.75
 VALOR_MAX_NF = 80000.00
-TIPOS_PERMITIDOS = ["Moto", "Carro de passeio"]
+PESO_INCLUSO_KG = 10
+VALOR_KG_EXCEDENTE = 0.70
+FATOR_CUBAGEM = 6000.0
 
-# Caminhão / operação especial
-DIESEL_PRECO = 8.00
-CAMINHAO_KM_POR_LITRO = 3.5
-ARLA_PRECO = 3.50
-ARLA_LITROS_POR_LITRO_DIESEL = 1 / 20
-CAMINHAO_MOTORISTA = 150.00
-CAMINHAO_RASTREAMENTO = 80.00
-CAMINHAO_SEGURO_VIAGEM = 50.00
+SERVICOS = ["Premium", "Expresso", "Ecommerce", "Standard", "Econômico"]
+SERVICOS_DOBRAM_CARRO = {"Ecommerce", "Standard", "Econômico"}
 
 LOCAL_DB_PATH = Path("database_cotacoes.json")
 
@@ -79,10 +87,8 @@ def ler_github():
         params={"ref": GITHUB_DATA_BRANCH},
         timeout=20,
     )
-
     if r.status_code == 404:
         return [], None
-
     r.raise_for_status()
     payload = r.json()
     conteudo = base64.b64decode(payload["content"]).decode("utf-8")
@@ -91,10 +97,7 @@ def ler_github():
 
 
 def gravar_github(dados, sha=None):
-    conteudo = json.dumps(
-        dados, ensure_ascii=False, indent=2
-    ).encode("utf-8")
-
+    conteudo = json.dumps(dados, ensure_ascii=False, indent=2).encode("utf-8")
     payload = {
         "message": "Atualiza histórico de cotações",
         "content": base64.b64encode(conteudo).decode("ascii"),
@@ -129,113 +132,104 @@ def carregar_historico():
 
 def salvar_historico(historico):
     if github_ativo():
-        # Lê o SHA mais recente imediatamente antes da gravação.
         _, sha = ler_github()
         gravar_github(historico, sha)
-        return
-
-    LOCAL_DB_PATH.write_text(
-        json.dumps(historico, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    else:
+        LOCAL_DB_PATH.write_text(
+            json.dumps(historico, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
 
 def moeda(valor):
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def arredondar_faixa_30(valor):
-    """
-    Valores comerciais em faixas de R$ 30,00.
-    Há tolerância de até R$ 2,00 acima da faixa anterior:
-    30,01 até 32,00 -> 30,00
-    acima de 32,00 -> 60,00
-    60,01 até 62,00 -> 60,00, etc.
-    """
-    if valor <= 30.0:
-        return 30.0
-
-    faixa_inferior = math.floor(valor / 30.0) * 30.0
-
-    # Se o valor for múltiplo exato de 30, mantém o próprio valor.
-    if math.isclose(valor, faixa_inferior, abs_tol=1e-9):
-        return faixa_inferior
-
-    # Até R$ 2,00 acima da faixa, mantém a faixa anterior.
-    if valor <= faixa_inferior + 2.0:
-        return faixa_inferior
-
-    return faixa_inferior + 30.0
+def arredondar_dezena_para_cima(valor):
+    return math.ceil(float(valor) / 10.0) * 10.0
 
 
-def calcular_adicional_peso(peso_total):
-    """
-    Até 10 kg: sem adicional.
-    A partir de 11 kg: R$ 0,70 por kg inteiro excedente.
-    Frações de kg são desconsideradas.
-    """
-    kg_inteiros = math.floor(float(peso_total))
-    kg_excedentes = max(0, kg_inteiros - 10)
-    return kg_excedentes, kg_excedentes * 0.70
+def calcular_peso(peso_real, altura, largura, comprimento):
+    peso_cubado = (float(altura) * float(largura) * float(comprimento)) / FATOR_CUBAGEM
+    peso_considerado = max(float(peso_real), peso_cubado)
+
+    # Regra aprovada: somente kg inteiro excedente.
+    # Ex.: 11,7 kg => 11 kg para cobrança => 1 kg excedente.
+    kg_inteiros = math.floor(peso_considerado)
+    kg_excedentes = max(0, kg_inteiros - PESO_INCLUSO_KG)
+    adicional = kg_excedentes * VALOR_KG_EXCEDENTE
+
+    return peso_cubado, peso_considerado, kg_excedentes, adicional
 
 
-def calcular_valor_coleta(km_ida):
-    # A distância informada é automaticamente considerada em ida + volta.
+def calcular_carro_moto(km_ida, servico):
     km_total = float(km_ida) * 2
-    gasolina_por_km = PRECO_GASOLINA / KM_POR_LITRO
 
+    gasolina_por_km = PRECO_GASOLINA / CARRO_KM_POR_LITRO
     custo_total = (
         km_total * gasolina_por_km
         + km_total * MANUTENCAO_POR_KM
         + km_total * PNEUS_DEPRECIACAO_POR_KM
-        + MOTORISTA_POR_COLETA
+        + MOTORISTA_CARRO
     )
 
-    liquido_necessario = custo_total * (1 + LUCRO)
-    valor_calculado = liquido_necessario / PERCENTUAL_RECEBIDO
-    valor_base = arredondar_faixa_30(valor_calculado)
+    liquido_com_lucro = custo_total * (1 + LUCRO)
+    valor_antes_arredondamento = liquido_com_lucro / PERCENTUAL_RECEBIDO
+    valor_base = arredondar_dezena_para_cima(valor_antes_arredondamento)
+
+    if servico in SERVICOS_DOBRAM_CARRO:
+        valor_servico = valor_base * 2
+    else:
+        valor_servico = valor_base
 
     return {
+        "regra": "Moto/Carro",
         "km_total": km_total,
         "custo_total": custo_total,
-        "valor_calculado": valor_calculado,
+        "valor_calculado": valor_antes_arredondamento,
         "valor_base": valor_base,
+        "valor_servico": valor_servico,
     }
 
 
-
-def calcular_valor_caminhao(km_ida):
+def calcular_caminhao(km_ida):
     km_total = float(km_ida) * 2
 
     litros_diesel = km_total / CAMINHAO_KM_POR_LITRO
-    custo_diesel = litros_diesel * DIESEL_PRECO
+    custo_diesel = litros_diesel * PRECO_DIESEL
 
-    litros_arla = litros_diesel * ARLA_LITROS_POR_LITRO_DIESEL
-    custo_arla = litros_arla * ARLA_PRECO
+    litros_arla = litros_diesel * ARLA_POR_LITROS_DIESEL
+    custo_arla = litros_arla * PRECO_ARLA
 
     custo_total = (
         custo_diesel
         + custo_arla
         + km_total * MANUTENCAO_POR_KM
         + km_total * PNEUS_DEPRECIACAO_POR_KM
-        + CAMINHAO_RASTREAMENTO
-        + CAMINHAO_MOTORISTA
-        + CAMINHAO_SEGURO_VIAGEM
+        + RASTREAMENTO_CAMINHAO
+        + MOTORISTA_CAMINHAO
+        + SEGURO_CAMINHAO
     )
 
-    liquido_necessario = custo_total * (1 + LUCRO)
-    valor_final = liquido_necessario / PERCENTUAL_RECEBIDO
+    liquido_com_lucro = custo_total * (1 + LUCRO)
+    # Caminhão não usa arredondamento por dezena e serviço não dobra o valor.
+    valor_servico = liquido_com_lucro / PERCENTUAL_RECEBIDO
 
     return {
+        "regra": "Caminhão",
         "km_total": km_total,
         "custo_total": custo_total,
-        "valor_calculado": valor_final,
-        "valor_base": valor_final,
+        "valor_calculado": valor_servico,
+        "valor_base": valor_servico,
+        "valor_servico": valor_servico,
     }
 
-def registrar_cotacao(cep, km, peso_total, valor_nf, tipo_veiculo, calculo, kg_excedentes, adicional_peso, valor_final):
-    # Recarrega o banco antes de incluir para reduzir risco de sobrescrever
-    # registros feitos por outro usuário.
+
+def registrar_cotacao(
+    cep, km, servico, peso_real, altura, largura, comprimento,
+    peso_cubado, peso_considerado, kg_excedentes, adicional_peso,
+    valor_nf, tipo_veiculo, calculo, valor_final
+):
     historico = carregar_historico()
     agora = datetime.now()
 
@@ -246,12 +240,20 @@ def registrar_cotacao(cep, km, peso_total, valor_nf, tipo_veiculo, calculo, kg_e
         "cep_coleta": cep.strip(),
         "km_informado": round(float(km), 2),
         "km_total_interno": round(float(calculo["km_total"]), 2),
-        "peso_total": round(float(peso_total), 2),
+        "servico": servico,
+        "peso_total": round(float(peso_real), 2),
+        "altura_cm": round(float(altura), 2),
+        "largura_cm": round(float(largura), 2),
+        "comprimento_cm": round(float(comprimento), 2),
+        "peso_cubado": round(float(peso_cubado), 2),
+        "peso_considerado": round(float(peso_considerado), 2),
         "kg_excedentes": int(kg_excedentes),
         "adicional_peso": round(float(adicional_peso), 2),
         "valor_nf": round(float(valor_nf), 2),
         "tipo_veiculo": tipo_veiculo,
+        "regra_calculo": calculo["regra"],
         "valor_base": round(float(calculo["valor_base"]), 2),
+        "valor_servico": round(float(calculo["valor_servico"]), 2),
         "valor_cotacao": round(float(valor_final), 2),
     }
 
@@ -262,14 +264,6 @@ def registrar_cotacao(cep, km, peso_total, valor_nf, tipo_veiculo, calculo, kg_e
 st.markdown(
     """
 <style>
-:root {
-    --orange: #f47c20;
-    --black: #111111;
-    --dark: #242424;
-    --gray: #6c6c6c;
-    --light: #f3f3f3;
-    --white: #ffffff;
-}
 .stApp {
     background:
         radial-gradient(circle at top right, rgba(244,124,32,.09), transparent 30%),
@@ -401,12 +395,44 @@ if pagina == "🚚 Nova Cotação":
             format="%.1f",
         )
 
+        st.markdown("**Serviço da coleta**")
+        servico = st.radio(
+            "Selecione o serviço",
+            SERVICOS,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+
         peso_total = st.number_input(
             "Peso total (kg)",
             min_value=0.0,
             step=0.1,
             format="%.1f",
         )
+
+        st.markdown("**Medidas da carga (cm)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            altura = st.number_input(
+                "Altura",
+                min_value=0.0,
+                step=1.0,
+                format="%.1f",
+            )
+        with col2:
+            largura = st.number_input(
+                "Largura",
+                min_value=0.0,
+                step=1.0,
+                format="%.1f",
+            )
+        with col3:
+            comprimento = st.number_input(
+                "Comprimento",
+                min_value=0.0,
+                step=1.0,
+                format="%.1f",
+            )
 
         valor_nf = st.number_input(
             "Valor da Nota Fiscal (NF)",
@@ -435,6 +461,8 @@ if pagina == "🚚 Nova Cotação":
             erros.append("Informe a quilometragem da coleta.")
         if peso_total <= 0:
             erros.append("Informe o peso total da carga.")
+        if altura <= 0 or largura <= 0 or comprimento <= 0:
+            erros.append("Informe altura, largura e comprimento da carga.")
         if valor_nf <= 0:
             erros.append("Informe o valor da Nota Fiscal.")
         if tipo_veiculo == "Selecione...":
@@ -444,58 +472,58 @@ if pagina == "🚚 Nova Cotação":
             for erro in erros:
                 st.error(erro)
         else:
-            exige_supervisao = False
-
-            operacao_caminhao = (
-                valor_nf > VALOR_MAX_NF or tipo_veiculo == "Caminhão"
-            )
-
             if tipo_veiculo == "Outro":
-                exige_supervisao = True
                 st.warning(
                     "⚠️ TIPO DE VEÍCULO FORA DO PADRÃO.\n\n"
                     "Consulte a supervisão para esta cotação."
                 )
-
-            if valor_nf > VALOR_MAX_NF and tipo_veiculo != "Caminhão":
-                st.info(
-                    "ℹ️ NF acima de R$ 80.000,00: o cálculo será realizado "
-                    "automaticamente pelos parâmetros de caminhão, com rastreamento."
-                )
-
-            if exige_supervisao:
-                st.info(
-                    "Esta cotação precisa de validação da supervisão. "
-                    "O valor automático não será exibido."
-                )
             else:
+                peso_cubado, peso_considerado, kg_excedentes, adicional_peso = calcular_peso(
+                    peso_total, altura, largura, comprimento
+                )
+
+                # NF acima de 80 mil exige os parâmetros de caminhão/rastreamento,
+                # mesmo que outro veículo tenha sido selecionado.
+                operacao_caminhao = (
+                    tipo_veiculo == "Caminhão" or valor_nf > VALOR_MAX_NF
+                )
+
                 if operacao_caminhao:
-                    calculo = calcular_valor_caminhao(km)
-                    kg_excedentes = 0
-                    adicional_peso = 0.0
-                    valor_final = calculo["valor_base"]
+                    calculo = calcular_caminhao(km)
                 else:
-                    calculo = calcular_valor_coleta(km)
-                    kg_excedentes, adicional_peso = calcular_adicional_peso(peso_total)
-                    valor_final = calculo["valor_base"] + adicional_peso
+                    calculo = calcular_carro_moto(km, servico)
+
+                valor_final = calculo["valor_servico"] + adicional_peso
 
                 try:
                     registrar_cotacao(
                         cep_coleta,
                         km,
+                        servico,
                         peso_total,
+                        altura,
+                        largura,
+                        comprimento,
+                        peso_cubado,
+                        peso_considerado,
+                        kg_excedentes,
+                        adicional_peso,
                         valor_nf,
                         tipo_veiculo,
                         calculo,
-                        kg_excedentes,
-                        adicional_peso,
                         valor_final,
                     )
                     st.success("Cotação calculada e salva no histórico.")
                 except Exception:
                     st.error(
-                        "O valor foi calculado, mas não foi possível salvar "
-                        "o histórico. Verifique a configuração do banco."
+                        "O valor foi calculado, mas não foi possível salvar o histórico. "
+                        "Verifique a configuração do banco."
+                    )
+
+                if valor_nf > VALOR_MAX_NF and tipo_veiculo != "Caminhão":
+                    st.info(
+                        "ℹ️ NF acima de R$ 80.000,00: foram aplicados automaticamente "
+                        "os parâmetros de caminhão e rastreamento."
                     )
 
                 st.markdown(
@@ -509,7 +537,7 @@ if pagina == "🚚 Nova Cotação":
                 )
 
                 st.caption(
-                    f"CEP {cep_coleta} • {km:.1f} km • {peso_total:.1f} kg • "
+                    f"CEP {cep_coleta} • {km:.1f} km • {servico} • "
                     f"{tipo_veiculo} • NF {moeda(valor_nf)}"
                 )
 
@@ -536,13 +564,14 @@ else:
 
         busca = st.text_input(
             "🔎 Buscar no histórico",
-            placeholder="Digite CEP, tipo de veículo ou data",
+            placeholder="Digite CEP, serviço, veículo ou data",
         ).strip().lower()
 
         if busca:
             historico = [
                 item for item in historico
                 if busca in item.get("cep_coleta", "").lower()
+                or busca in item.get("servico", "").lower()
                 or busca in item.get("tipo_veiculo", "").lower()
                 or busca in item.get("data_hora", "").lower()
             ]
@@ -557,14 +586,24 @@ else:
                     <div class="hist-value">{moeda(item.get("valor_cotacao", 0))}</div>
                     <div>
                         📍 CEP {item.get("cep_coleta", "-")}
-                        &nbsp;&nbsp;•&nbsp;&nbsp;
+                        &nbsp;•&nbsp;
                         🚗 {item.get("tipo_veiculo", "-")}
-                        &nbsp;&nbsp;•&nbsp;&nbsp;
+                        &nbsp;•&nbsp;
+                        📦 {item.get("servico", "-")}
+                        &nbsp;•&nbsp;
                         📏 {float(item.get("km_informado", 0)):.1f} km
-                        &nbsp;&nbsp;•&nbsp;&nbsp;
-                        ⚖️ {float(item.get("peso_total", 0)):.1f} kg
                     </div>
-                    <div style="margin-top:5px;color:#666;">
+                    <div style="margin-top:6px;color:#666;">
+                        Peso real: {float(item.get("peso_total", 0)):.1f} kg
+                        &nbsp;•&nbsp;
+                        Peso cubado: {float(item.get("peso_cubado", 0)):.2f} kg
+                        &nbsp;•&nbsp;
+                        Peso considerado: {float(item.get("peso_considerado", item.get("peso_total", 0))):.2f} kg
+                        <br>
+                        Medidas: {float(item.get("altura_cm", 0)):.1f} ×
+                        {float(item.get("largura_cm", 0)):.1f} ×
+                        {float(item.get("comprimento_cm", 0)):.1f} cm
+                        <br>
                         NF: {moeda(item.get("valor_nf", 0))}
                     </div>
                 </div>
