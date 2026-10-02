@@ -327,5 +327,20 @@
     "tipo_veiculo": "Caminhão",
     "valor_base": 619.89,
     "valor_cotacao": 619.89
+  },
+  {
+    "id": "20261002194421929859",
+    "data_hora": "02/10/2026 19:44:21",
+    "timestamp": "2026-10-02T19:44:21",
+    "cep_coleta": "04285-080",
+    "km_informado": 3.3,
+    "km_total_interno": 6.6,
+    "peso_total": 8.4,
+    "kg_excedentes": 0,
+    "adicional_peso": 0.0,
+    "valor_nf": 1530.0,
+    "tipo_veiculo": "Carro de passeio",
+    "valor_base": 60.0,
+    "valor_cotacao": 60.0
   }
 ]
