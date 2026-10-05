@@ -41,7 +41,7 @@ VALOR_KG_EXCEDENTE = 0.70
 FATOR_CUBAGEM = 6000.0
 
 SERVICOS = ["Premium", "Expresso", "Ecommerce", "Standard", "Econômico"]
-SERVICOS_DOBRAM_CARRO = {"Ecommerce", "Standard", "Econômico"}
+SERVICOS_DOBRAM_CARRO = {"Standard", "Econômico"}
 
 LOCAL_DB_PATH = Path("database_cotacoes.json")
 
@@ -149,17 +149,33 @@ def arredondar_dezena_para_cima(valor):
     return math.ceil(float(valor) / 10.0) * 10.0
 
 
-def calcular_peso(peso_real, altura, largura, comprimento):
-    peso_cubado = (float(altura) * float(largura) * float(comprimento)) / FATOR_CUBAGEM
-    peso_considerado = max(float(peso_real), peso_cubado)
+def calcular_peso_volumes(volumes):
+    peso_real_total = sum(float(v["peso"]) for v in volumes)
+    peso_cubado_total = sum(
+        (float(v["altura"]) * float(v["largura"]) * float(v["comprimento"]))
+        / FATOR_CUBAGEM
+        for v in volumes
+    )
+    peso_considerado = max(peso_real_total, peso_cubado_total)
 
-    # Regra aprovada: somente kg inteiro excedente.
-    # Ex.: 11,7 kg => 11 kg para cobrança => 1 kg excedente.
+    # Somente kg inteiro excedente acima de 10 kg.
     kg_inteiros = math.floor(peso_considerado)
     kg_excedentes = max(0, kg_inteiros - PESO_INCLUSO_KG)
     adicional = kg_excedentes * VALOR_KG_EXCEDENTE
 
-    return peso_cubado, peso_considerado, kg_excedentes, adicional
+    return peso_real_total, peso_cubado_total, peso_considerado, kg_excedentes, adicional
+
+
+def parse_valor_brl(texto):
+    texto = str(texto).strip().replace("R$", "").replace(" ", "")
+    if not texto:
+        return 0.0
+    try:
+        if "," in texto:
+            texto = texto.replace(".", "").replace(",", ".")
+        return float(texto)
+    except ValueError:
+        return None
 
 
 def calcular_carro_moto(km_ida, servico):
@@ -226,8 +242,8 @@ def calcular_caminhao(km_ida):
 
 
 def registrar_cotacao(
-    cep, km, servico, peso_real, altura, largura, comprimento,
-    peso_cubado, peso_considerado, kg_excedentes, adicional_peso,
+    cep, km, servico, volumes, peso_real_total, peso_cubado_total,
+    peso_considerado, kg_excedentes, adicional_peso,
     valor_nf, tipo_veiculo, calculo, valor_final
 ):
     historico = carregar_historico()
@@ -241,11 +257,10 @@ def registrar_cotacao(
         "km_informado": round(float(km), 2),
         "km_total_interno": round(float(calculo["km_total"]), 2),
         "servico": servico,
-        "peso_total": round(float(peso_real), 2),
-        "altura_cm": round(float(altura), 2),
-        "largura_cm": round(float(largura), 2),
-        "comprimento_cm": round(float(comprimento), 2),
-        "peso_cubado": round(float(peso_cubado), 2),
+        "quantidade_volumes": len(volumes),
+        "volumes": volumes,
+        "peso_total": round(float(peso_real_total), 2),
+        "peso_cubado": round(float(peso_cubado_total), 2),
         "peso_considerado": round(float(peso_considerado), 2),
         "kg_excedentes": int(kg_excedentes),
         "adicional_peso": round(float(adicional_peso), 2),
@@ -381,6 +396,17 @@ pagina = st.sidebar.radio(
 )
 
 if pagina == "🚚 Nova Cotação":
+    st.markdown("**Quantidade de volumes**")
+    quantidade_volumes = st.number_input(
+        "Quantidade de volumes",
+        min_value=1,
+        max_value=30,
+        value=1,
+        step=1,
+        label_visibility="collapsed",
+        help="Escolha quantos volumes a carga possui. Os campos serão abertos abaixo.",
+    )
+
     with st.form("form_coleta"):
         cep_coleta = st.text_input(
             "CEP da coleta",
@@ -403,42 +429,58 @@ if pagina == "🚚 Nova Cotação":
             label_visibility="collapsed",
         )
 
-        peso_total = st.number_input(
-            "Peso total (kg)",
-            min_value=0.0,
-            step=0.1,
-            format="%.1f",
-        )
+        st.markdown("### 📦 Volumes da carga")
+        volumes = []
 
-        st.markdown("**Medidas da carga (cm)**")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            altura = st.number_input(
-                "Altura",
-                min_value=0.0,
-                step=1.0,
-                format="%.1f",
-            )
-        with col2:
-            largura = st.number_input(
-                "Largura",
-                min_value=0.0,
-                step=1.0,
-                format="%.1f",
-            )
-        with col3:
-            comprimento = st.number_input(
-                "Comprimento",
-                min_value=0.0,
-                step=1.0,
-                format="%.1f",
-            )
+        for i in range(int(quantidade_volumes)):
+            st.markdown(f"**Volume {i + 1}**")
+            c1, c2, c3, c4 = st.columns(4)
 
-        valor_nf = st.number_input(
+            with c1:
+                peso = st.number_input(
+                    "Peso (kg)",
+                    min_value=0.0,
+                    step=0.1,
+                    format="%.1f",
+                    key=f"peso_{i}",
+                )
+            with c2:
+                altura = st.number_input(
+                    "Altura (cm)",
+                    min_value=0.0,
+                    step=1.0,
+                    format="%.1f",
+                    key=f"altura_{i}",
+                )
+            with c3:
+                largura = st.number_input(
+                    "Largura (cm)",
+                    min_value=0.0,
+                    step=1.0,
+                    format="%.1f",
+                    key=f"largura_{i}",
+                )
+            with c4:
+                comprimento = st.number_input(
+                    "Comprimento (cm)",
+                    min_value=0.0,
+                    step=1.0,
+                    format="%.1f",
+                    key=f"comprimento_{i}",
+                )
+
+            volumes.append({
+                "volume": i + 1,
+                "peso": peso,
+                "altura": altura,
+                "largura": largura,
+                "comprimento": comprimento,
+            })
+
+        valor_nf_texto = st.text_input(
             "Valor da Nota Fiscal (NF)",
-            min_value=0.0,
-            step=100.0,
-            format="%.2f",
+            placeholder="Ex.: 500.000,00",
+            help="Digite o valor completo. Exemplo: 500000 ou 500.000,00.",
         )
 
         tipo_veiculo = st.selectbox(
@@ -454,92 +496,100 @@ if pagina == "🚚 Nova Cotação":
 
     if calcular:
         erros = []
+        valor_nf = parse_valor_brl(valor_nf_texto)
 
         if not cep_coleta.strip():
             erros.append("Informe o CEP da coleta.")
         if km <= 0:
             erros.append("Informe a quilometragem da coleta.")
-        if peso_total <= 0:
-            erros.append("Informe o peso total da carga.")
-        if altura <= 0 or largura <= 0 or comprimento <= 0:
-            erros.append("Informe altura, largura e comprimento da carga.")
-        if valor_nf <= 0:
-            erros.append("Informe o valor da Nota Fiscal.")
+        if valor_nf is None or valor_nf <= 0:
+            erros.append("Informe corretamente o valor da Nota Fiscal.")
         if tipo_veiculo == "Selecione...":
             erros.append("Selecione o tipo de veículo.")
+
+        for v in volumes:
+            if (
+                v["peso"] <= 0
+                or v["altura"] <= 0
+                or v["largura"] <= 0
+                or v["comprimento"] <= 0
+            ):
+                erros.append(
+                    f"Preencha peso, altura, largura e comprimento do Volume {v['volume']}."
+                )
 
         if erros:
             for erro in erros:
                 st.error(erro)
+        elif tipo_veiculo == "Outro":
+            st.warning(
+                "⚠️ TIPO DE VEÍCULO FORA DO PADRÃO.\n\n"
+                "Consulte a supervisão para esta cotação."
+            )
         else:
-            if tipo_veiculo == "Outro":
-                st.warning(
-                    "⚠️ TIPO DE VEÍCULO FORA DO PADRÃO.\n\n"
-                    "Consulte a supervisão para esta cotação."
-                )
+            (
+                peso_real_total,
+                peso_cubado_total,
+                peso_considerado,
+                kg_excedentes,
+                adicional_peso,
+            ) = calcular_peso_volumes(volumes)
+
+            operacao_caminhao = (
+                tipo_veiculo == "Caminhão" or valor_nf > VALOR_MAX_NF
+            )
+
+            if operacao_caminhao:
+                calculo = calcular_caminhao(km)
             else:
-                peso_cubado, peso_considerado, kg_excedentes, adicional_peso = calcular_peso(
-                    peso_total, altura, largura, comprimento
+                calculo = calcular_carro_moto(km, servico)
+
+            valor_final = calculo["valor_servico"] + adicional_peso
+
+            try:
+                registrar_cotacao(
+                    cep_coleta,
+                    km,
+                    servico,
+                    volumes,
+                    peso_real_total,
+                    peso_cubado_total,
+                    peso_considerado,
+                    kg_excedentes,
+                    adicional_peso,
+                    valor_nf,
+                    tipo_veiculo,
+                    calculo,
+                    valor_final,
+                )
+                st.success("Cotação calculada e salva no histórico.")
+            except Exception:
+                st.error(
+                    "O valor foi calculado, mas não foi possível salvar o histórico. "
+                    "Verifique a configuração do banco."
                 )
 
-                # NF acima de 80 mil exige os parâmetros de caminhão/rastreamento,
-                # mesmo que outro veículo tenha sido selecionado.
-                operacao_caminhao = (
-                    tipo_veiculo == "Caminhão" or valor_nf > VALOR_MAX_NF
+            if valor_nf > VALOR_MAX_NF and tipo_veiculo != "Caminhão":
+                st.info(
+                    "ℹ️ NF acima de R$ 80.000,00: foram aplicados automaticamente "
+                    "os parâmetros de caminhão e rastreamento."
                 )
 
-                if operacao_caminhao:
-                    calculo = calcular_caminhao(km)
-                else:
-                    calculo = calcular_carro_moto(km, servico)
+            st.markdown(
+                f"""
+                <div class="resultado">
+                    <div class="resultado-label">VALOR DA COLETA</div>
+                    <div class="resultado-valor">{moeda(valor_final)}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-                valor_final = calculo["valor_servico"] + adicional_peso
-
-                try:
-                    registrar_cotacao(
-                        cep_coleta,
-                        km,
-                        servico,
-                        peso_total,
-                        altura,
-                        largura,
-                        comprimento,
-                        peso_cubado,
-                        peso_considerado,
-                        kg_excedentes,
-                        adicional_peso,
-                        valor_nf,
-                        tipo_veiculo,
-                        calculo,
-                        valor_final,
-                    )
-                    st.success("Cotação calculada e salva no histórico.")
-                except Exception:
-                    st.error(
-                        "O valor foi calculado, mas não foi possível salvar o histórico. "
-                        "Verifique a configuração do banco."
-                    )
-
-                if valor_nf > VALOR_MAX_NF and tipo_veiculo != "Caminhão":
-                    st.info(
-                        "ℹ️ NF acima de R$ 80.000,00: foram aplicados automaticamente "
-                        "os parâmetros de caminhão e rastreamento."
-                    )
-
-                st.markdown(
-                    f"""
-                    <div class="resultado">
-                        <div class="resultado-label">VALOR DA COLETA</div>
-                        <div class="resultado-valor">{moeda(valor_final)}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-                st.caption(
-                    f"CEP {cep_coleta} • {km:.1f} km • {servico} • "
-                    f"{tipo_veiculo} • NF {moeda(valor_nf)}"
-                )
+            st.caption(
+                f"CEP {cep_coleta} • {km:.1f} km • {servico} • "
+                f"{int(quantidade_volumes)} volume(s) • {tipo_veiculo} • "
+                f"NF {moeda(valor_nf)}"
+            )
 
 else:
     st.subheader("📋 Histórico de Cotações")
@@ -594,16 +644,14 @@ else:
                         📏 {float(item.get("km_informado", 0)):.1f} km
                     </div>
                     <div style="margin-top:6px;color:#666;">
-                        Peso real: {float(item.get("peso_total", 0)):.1f} kg
+                        Volumes: {int(item.get("quantidade_volumes", 1))}
                         &nbsp;•&nbsp;
-                        Peso cubado: {float(item.get("peso_cubado", 0)):.2f} kg
+                        Peso real total: {float(item.get("peso_total", 0)):.1f} kg
                         &nbsp;•&nbsp;
+                        Peso cubado total: {float(item.get("peso_cubado", 0)):.2f} kg
+                        <br>
                         Peso considerado: {float(item.get("peso_considerado", item.get("peso_total", 0))):.2f} kg
-                        <br>
-                        Medidas: {float(item.get("altura_cm", 0)):.1f} ×
-                        {float(item.get("largura_cm", 0)):.1f} ×
-                        {float(item.get("comprimento_cm", 0)):.1f} cm
-                        <br>
+                        &nbsp;•&nbsp;
                         NF: {moeda(item.get("valor_nf", 0))}
                     </div>
                 </div>
