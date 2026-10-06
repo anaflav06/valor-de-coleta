@@ -1347,5 +1347,238 @@
     "valor_base": 582.07,
     "valor_servico": 582.07,
     "valor_cotacao": 701.07
+  },
+  {
+    "id": "20261006171431330750",
+    "data_hora": "06/10/2026 17:14:31",
+    "timestamp": "2026-10-06T17:14:31",
+    "cep_coleta": "09190610",
+    "km_informado": 15.6,
+    "km_total_interno": 31.2,
+    "servico": "Standard",
+    "quantidade_volumes": 30,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 2,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 3,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 4,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 5,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 6,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 7,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 8,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 9,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 10,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 11,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 12,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 13,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 14,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 15,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 16,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 17,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 18,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 19,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 20,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 21,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 22,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 23,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 24,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 25,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 26,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 27,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 28,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 29,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      },
+      {
+        "volume": 30,
+        "peso": 6.0,
+        "altura": 15.0,
+        "largura": 30.0,
+        "comprimento": 40.0
+      }
+    ],
+    "peso_total": 180.0,
+    "peso_cubado": 90.0,
+    "peso_considerado": 180.0,
+    "kg_excedentes": 170,
+    "adicional_peso": 119.0,
+    "valor_nf": 750.0,
+    "tipo_veiculo": "Caminhão",
+    "regra_calculo": "Caminhão",
+    "valor_base": 582.07,
+    "valor_servico": 582.07,
+    "valor_cotacao": 701.07
   }
 ]
