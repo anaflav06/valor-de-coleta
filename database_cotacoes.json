@@ -2504,5 +2504,77 @@
     "valor_base": 50.0,
     "valor_servico": 50.0,
     "valor_cotacao": 50.0
+  },
+  {
+    "id": "20261008195814188302",
+    "data_hora": "08/10/2026 19:58:14",
+    "timestamp": "2026-10-08T19:58:14",
+    "cep_coleta": "04246001",
+    "km_informado": 4.0,
+    "km_total_interno": 8.0,
+    "servico": "Ecommerce",
+    "quantidade_volumes": 7,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 7.5,
+        "altura": 52.0,
+        "largura": 43.0,
+        "comprimento": 32.0
+      },
+      {
+        "volume": 2,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      },
+      {
+        "volume": 3,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      },
+      {
+        "volume": 4,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      },
+      {
+        "volume": 5,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      },
+      {
+        "volume": 6,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      },
+      {
+        "volume": 7,
+        "peso": 7.0,
+        "altura": 203.0,
+        "largura": 16.0,
+        "comprimento": 12.0
+      }
+    ],
+    "peso_total": 49.5,
+    "peso_cubado": 50.9,
+    "peso_considerado": 50.9,
+    "kg_excedentes": 40,
+    "adicional_peso": 28.0,
+    "valor_nf": 8890.7,
+    "tipo_veiculo": "Carro de passeio",
+    "regra_calculo": "Moto/Carro",
+    "valor_base": 40.0,
+    "valor_servico": 40.0,
+    "valor_cotacao": 68.0
   }
 ]
