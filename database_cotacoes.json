@@ -3304,5 +3304,77 @@
     "valor_base": 860.53,
     "valor_servico": 860.53,
     "valor_cotacao": 925.63
+  },
+  {
+    "id": "20261015122836273391",
+    "data_hora": "15/10/2026 12:28:36",
+    "timestamp": "2026-10-15T12:28:36",
+    "cep_coleta": "09445400",
+    "km_informado": 48.0,
+    "km_total_interno": 96.0,
+    "servico": "Standard",
+    "quantidade_volumes": 7,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 2,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 3,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 4,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 5,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 6,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      },
+      {
+        "volume": 7,
+        "peso": 8.0,
+        "altura": 76.0,
+        "largura": 26.0,
+        "comprimento": 45.0
+      }
+    ],
+    "peso_total": 56.0,
+    "peso_cubado": 103.74,
+    "peso_considerado": 103.74,
+    "kg_excedentes": 93,
+    "adicional_peso": 65.1,
+    "valor_nf": 2881.0,
+    "tipo_veiculo": "Caminhão",
+    "regra_calculo": "Caminhão",
+    "valor_base": 860.53,
+    "valor_servico": 860.53,
+    "valor_cotacao": 925.63
   }
 ]
