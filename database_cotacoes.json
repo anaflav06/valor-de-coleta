@@ -4985,5 +4985,98 @@
     "valor_base": 50.0,
     "valor_servico": 50.0,
     "valor_cotacao": 50.0
+  },
+  {
+    "id": "20261026153738022039",
+    "data_hora": "26/10/2026 15:37:38",
+    "timestamp": "2026-10-26T15:37:38",
+    "cep_coleta": "04072010",
+    "km_informado": 9.1,
+    "km_total_interno": 18.2,
+    "servico": "Expresso",
+    "quantidade_volumes": 10,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 22.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 2,
+        "peso": 22.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 3,
+        "peso": 22.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 4,
+        "peso": 22.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 5,
+        "peso": 2.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 6,
+        "peso": 5.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 7,
+        "peso": 6.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 8,
+        "peso": 4.0,
+        "altura": 30.0,
+        "largura": 63.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 9,
+        "peso": 15.0,
+        "altura": 30.0,
+        "largura": 60.0,
+        "comprimento": 46.0
+      },
+      {
+        "volume": 10,
+        "peso": 40.0,
+        "altura": 100.0,
+        "largura": 100.0,
+        "comprimento": 100.0
+      }
+    ],
+    "peso_total": 160.0,
+    "peso_cubado": 291.56,
+    "peso_considerado": 291.56,
+    "kg_excedentes": 281,
+    "adicional_peso": 196.7,
+    "valor_nf": 70283.0,
+    "tipo_veiculo": "Carro de passeio",
+    "regra_calculo": "Moto/Carro",
+    "valor_base": 60.0,
+    "valor_servico": 60.0,
+    "valor_cotacao": 256.7
   }
 ]
