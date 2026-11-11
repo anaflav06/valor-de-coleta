@@ -7796,5 +7796,35 @@
     "valor_base": 80.0,
     "valor_servico": 80.0,
     "valor_cotacao": 80.0
+  },
+  {
+    "id": "20261111170504075020",
+    "data_hora": "11/11/2026 17:05:04",
+    "timestamp": "2026-11-11T17:05:04",
+    "cep_coleta": "04360000",
+    "km_informado": 8.0,
+    "km_total_interno": 16.0,
+    "servico": "Expresso",
+    "quantidade_volumes": 1,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 0.5,
+        "altura": 20.0,
+        "largura": 20.0,
+        "comprimento": 12.0
+      }
+    ],
+    "peso_total": 0.5,
+    "peso_cubado": 0.8,
+    "peso_considerado": 0.8,
+    "kg_excedentes": 0,
+    "adicional_peso": 0.0,
+    "valor_nf": 1995.0,
+    "tipo_veiculo": "Carro de passeio",
+    "regra_calculo": "Moto/Carro",
+    "valor_base": 60.0,
+    "valor_servico": 60.0,
+    "valor_cotacao": 60.0
   }
 ]
