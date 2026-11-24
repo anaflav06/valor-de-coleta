@@ -9452,5 +9452,63 @@
     "valor_base": 80.0,
     "valor_servico": 160.0,
     "valor_cotacao": 172.6
+  },
+  {
+    "id": "20261124174336511752",
+    "data_hora": "24/11/2026 17:43:36",
+    "timestamp": "2026-11-24T17:43:36",
+    "cep_coleta": "06460-050",
+    "km_informado": 34.0,
+    "km_total_interno": 68.0,
+    "servico": "Ecommerce",
+    "quantidade_volumes": 5,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 20.0,
+        "altura": 165.0,
+        "largura": 82.0,
+        "comprimento": 30.0
+      },
+      {
+        "volume": 2,
+        "peso": 20.0,
+        "altura": 165.0,
+        "largura": 82.0,
+        "comprimento": 30.0
+      },
+      {
+        "volume": 3,
+        "peso": 20.0,
+        "altura": 165.0,
+        "largura": 82.0,
+        "comprimento": 30.0
+      },
+      {
+        "volume": 4,
+        "peso": 20.0,
+        "altura": 165.0,
+        "largura": 82.0,
+        "comprimento": 30.0
+      },
+      {
+        "volume": 5,
+        "peso": 50.0,
+        "altura": 40.0,
+        "largura": 25.0,
+        "comprimento": 20.0
+      }
+    ],
+    "peso_total": 130.0,
+    "peso_cubado": 273.93,
+    "peso_considerado": 273.93,
+    "kg_excedentes": 263,
+    "adicional_peso": 184.1,
+    "valor_nf": 3500.0,
+    "tipo_veiculo": "Caminhão",
+    "regra_calculo": "Caminhão",
+    "valor_base": 740.21,
+    "valor_servico": 740.21,
+    "valor_cotacao": 924.31
   }
 ]
