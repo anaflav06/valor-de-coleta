@@ -9348,5 +9348,42 @@
     "valor_base": 602.7,
     "valor_servico": 602.7,
     "valor_cotacao": 658.7
+  },
+  {
+    "id": "20261124120833027832",
+    "data_hora": "24/11/2026 12:08:33",
+    "timestamp": "2026-11-24T12:08:33",
+    "cep_coleta": "09891-001",
+    "km_informado": 14.2,
+    "km_total_interno": 28.4,
+    "servico": "Premium",
+    "quantidade_volumes": 2,
+    "volumes": [
+      {
+        "volume": 1,
+        "peso": 14.0,
+        "altura": 29.0,
+        "largura": 25.0,
+        "comprimento": 27.0
+      },
+      {
+        "volume": 2,
+        "peso": 14.0,
+        "altura": 29.0,
+        "largura": 25.0,
+        "comprimento": 27.0
+      }
+    ],
+    "peso_total": 28.0,
+    "peso_cubado": 6.53,
+    "peso_considerado": 28.0,
+    "kg_excedentes": 18,
+    "adicional_peso": 12.6,
+    "valor_nf": 4000.0,
+    "tipo_veiculo": "Carro de passeio",
+    "regra_calculo": "Moto/Carro",
+    "valor_base": 80.0,
+    "valor_servico": 80.0,
+    "valor_cotacao": 92.6
   }
 ]
